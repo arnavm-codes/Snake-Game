@@ -20,6 +20,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
 
     // snake
     Tile snakeHead;
+    ArrayList<Tile> snakeBody; 
 
     // food
     Tile food;
@@ -31,7 +32,9 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
     int velocityX;
     int velocityY;
 
+/***********************************************************************************************************************/
 
+    // CONSTRUCTOR
     SnakeGame(int boardWidth, int boardHeight)
     {
         this.boardWidth = boardWidth;
@@ -42,6 +45,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
         setFocusable(true);
 
         snakeHead = new Tile(5,5);
+        snakeBody = new ArrayList<Tile>();
 
         food = new Tile(10,10);
 
@@ -56,11 +60,15 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
         gameLoop.start();
     }
 
+/***********************************************************************************************************************/
+
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
         draw(g);
     }
+
+/***********************************************************************************************************************/
 
     public void draw(Graphics g)
     {
@@ -75,10 +83,19 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
         g.setColor(Color.RED);
         g.fillRect(food.x*tileSize, food.y*tileSize, tileSize, tileSize);
 
-        // snake 
+        // snake head
         g.setColor(Color.GREEN);
         g.fillRect(snakeHead.x*tileSize, snakeHead.y*tileSize, tileSize, tileSize);
+
+        // snake body
+        for(int i=0; i<snakeBody.size(); i++)
+        {
+            Tile snakePart = snakeBody.get(i);
+            g.fillRect(snakePart.x*tileSize, snakePart.y*tileSize, tileSize, tileSize );
+        }
     }
+
+/***********************************************************************************************************************/
 
     public void placeFood()
     {
@@ -88,18 +105,58 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
         // 600/25=24;  x and y would be random positions on the grid ranging between 0-24
     }
 
+/***********************************************************************************************************************/
+
+    public boolean collisions(Tile tile1, Tile tile2)
+    {
+        return tile1.x == tile2.x && tile1.y == tile2.y;
+    }
+
+/***********************************************************************************************************************/
+    
     public void move()
     {
+        // eating food
+        if(collisions(snakeHead, food))
+        {
+           snakeBody.add(new Tile(food.x, food.y));
+           placeFood(); 
+        }
+
+        // snake body
+        for(int i=snakeBody.size()-1; i>=0; i--)
+        {
+           Tile snakePart = snakeBody.get(i);
+           if(i == 0)
+           {
+            snakePart.x = snakeHead.x;
+            snakePart.y = snakeHead.y;
+           } 
+           else
+           {
+            Tile prev_snakePart = snakeBody.get(i-1);
+            snakePart.x = prev_snakePart.x;
+            snakePart.y = prev_snakePart.y;
+           }
+        }
+
+
+        // snake head
         snakeHead.x += velocityX;
         snakeHead.y  += velocityY;
     }
 
+/***********************************************************************************************************************/
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
         move();
         repaint();
     }
+
+/***********************************************************************************************************************/
+
     @Override
     public void keyPressed(KeyEvent e) {
         if(e.getKeyCode() == KeyEvent.VK_UP && velocityY != 1)
@@ -123,8 +180,6 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
             velocityY = 0;
         }
     }
-
-
     // not needed
     @Override
     public void keyTyped(KeyEvent e) {}
