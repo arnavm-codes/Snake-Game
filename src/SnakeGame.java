@@ -31,6 +31,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
     Timer gameLoop;
     int velocityX;
     int velocityY;
+    boolean gameOver = false;
 
 /***********************************************************************************************************************/
 
@@ -54,7 +55,6 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
 
         velocityX = 0;
         velocityY = 0;
-
 
         gameLoop = new Timer(100, this);
         gameLoop.start();
@@ -95,6 +95,18 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
             Tile snakePart = snakeBody.get(i);
             // g.fillRect(snakePart.x*tileSize, snakePart.y*tileSize, tileSize, tileSize );
             g.fill3DRect(snakePart.x*tileSize, snakePart.y*tileSize, tileSize, tileSize, true);
+        }
+
+        // score
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        if (gameOver) 
+        {
+            g.setColor(Color.RED);
+            g.drawString("Game Over!   Score:" + String.valueOf(snakeBody.size()), tileSize-16, tileSize);
+        }
+        else
+        {
+            g.drawString("Score: " + String.valueOf(snakeBody.size()), tileSize-16, tileSize);
         }
     }
 
@@ -143,10 +155,28 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
            }
         }
 
-
         // snake head
         snakeHead.x += velocityX;
         snakeHead.y  += velocityY;
+
+
+        // game over conditions
+        for(int i=0; i<snakeBody.size(); i++)
+        {
+            Tile snakePart = snakeBody.get(i);
+            if(collisions(snakeHead, snakePart))
+            {
+                System.out.println("Game Over! #1");
+                gameOver = true;
+            }
+
+            else if(snakeHead.x*tileSize < 0 || snakeHead.x*tileSize > boardWidth ||
+                    snakeHead.y*tileSize < 0 || snakeHead.y*tileSize > boardHeight)
+            {
+                System.out.println("Game Over! #2");
+                gameOver = true;
+            }
+        }
     }
 
 /***********************************************************************************************************************/
@@ -156,6 +186,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener{
     {
         move();
         repaint();
+        if (gameOver) gameLoop.stop();
     }
 
 /***********************************************************************************************************************/
